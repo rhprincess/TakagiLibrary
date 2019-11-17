@@ -1,0 +1,2 @@
+include ':app', ':takagi'
+rootProject.name='TakagiLibrary'

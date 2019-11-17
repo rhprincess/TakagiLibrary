@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="TakagiIndicator">
+        <attr name="state" format="enum">
+            <enum name="on" value="1" />
+            <enum name="off" value="0" />
+        </attr>
+        <attr name="circleGravity" format="enum">
+            <enum name="top" value="-1" />
+            <enum name="center" value="0" />
+            <enum name="bottom" value="1" />
+        </attr>
+        <attr name="circleRadius" format="dimension" />
+        <attr name="indicatorActiveColor" format="color" />
+        <attr name="indicatorNormalColor" format="color" />
+        <attr name="indicatorLineAlpha" format="integer" />
+        <attr name="indicatorLineThickness" format="dimension" />
+        <attr name="offset" format="dimension" />
+    </declare-styleable>
+</resources>
