@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<takagies>
+
+    <takagi
+        layout="@layout/step_one"
+        summary="测试步骤01的详细介绍。。。。。。"
+        title="@string/app_name" />
+
+    <takagi
+        layout="@layout/step_two"
+        summary="测试步骤02的详细介绍。。。。。。"
+        title="测试步骤02" />
+
+    <takagi
+        id="@+id/three"
+        summary="测试步骤03的详细介绍。。。。。。"
+        title="测试步骤03" />
+
+    <takagi
+        summary="测试步骤04的详细介绍。。。。。。"
+        title="测试步骤04" />
+
+    <takagi
+        summary="测试步骤05的详细介绍。。。。。。"
+        title="测试步骤05" />
+
+</takagies>

@@ -3,8 +3,13 @@ package com.github.coxylicacid.takagi;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.View;
@@ -14,11 +19,13 @@ import androidx.annotation.ColorInt;
 public class TakagiIndicator extends View {
 
     private Paint p;
+    private Matrix matrix;
     private float thickness;
     private float circleRadius;
     private int indicatorColorActive;
     private int indicatorColorNormal;
     private int indicatorAlpha = 175;
+    private Bitmap indicatorIcon;
     private float offset;
     private int circleTop = 0;
     private int circleBottom = 0;
@@ -49,6 +56,8 @@ public class TakagiIndicator extends View {
         circleRadius = dp(6);
         setMinimumWidth((int) circleRadius);
         setMinimumHeight((int) (circleRadius * 2));
+
+        matrix = new Matrix();
     }
 
     public TakagiIndicator(Context context, AttributeSet attrs) {
@@ -121,6 +130,14 @@ public class TakagiIndicator extends View {
             canvas.drawCircle(getPaddingLeft() + circleRadius + thickness / 2, dy + offset, circleRadius, p);
         }
 
+        // 如果指示器设置了图标，那么往圆圈里面画图标
+        if (indicatorIcon != null) {
+            float scaleW = circleRadius / indicatorIcon.getWidth();
+            float scaleH = circleRadius / indicatorIcon.getHeight();
+            matrix.postScale(scaleW, scaleH);
+            matrix.postTranslate(0, offset);
+            canvas.drawBitmap(indicatorIcon, matrix, p);
+        }
     }
 
     public TakagiIndicator setIndicatorLineAlpha(int alpha) {
@@ -129,7 +146,7 @@ public class TakagiIndicator extends View {
         return this;
     }
 
-    public TakagiIndicator setIndicatorThickness(int thickness) {
+    public TakagiIndicator setIndicatorThickness(float thickness) {
         this.thickness = thickness;
         p.setStrokeWidth(thickness);
         invalidate();
@@ -174,7 +191,7 @@ public class TakagiIndicator extends View {
         return indicatorColorNormal;
     }
 
-    public TakagiIndicator setCircleRadius(int radius) {
+    public TakagiIndicator setCircleRadius(float radius) {
         this.circleRadius = radius;
         invalidate();
         return this;
@@ -186,6 +203,18 @@ public class TakagiIndicator extends View {
 
     public TakagiIndicator setCircleGravity(int gravity) {
         performGravity(gravity);
+        invalidate();
+        return this;
+    }
+
+    public TakagiIndicator setIndicatorIcon(Bitmap bitmap) {
+        this.indicatorIcon = bitmap;
+        invalidate();
+        return this;
+    }
+
+    public TakagiIndicator setIndicatorIcon(Drawable drawable) {
+        this.indicatorIcon = toBitmap(drawable);
         invalidate();
         return this;
     }
@@ -294,8 +323,26 @@ public class TakagiIndicator extends View {
         return isStateOn;
     }
 
-    public int dp(float value) {
+    private int dp(float value) {
         float density = getResources().getDisplayMetrics().density;
         return value == 0 ? 0 : (int) Math.ceil(density * value);
+    }
+
+    // Drawable To Bitmap
+    private Bitmap toBitmap(Drawable drawable) {
+        // 获取 drawable 长宽
+        int width = drawable.getIntrinsicWidth();
+        int heigh = drawable.getIntrinsicHeight();
+        drawable.setBounds(0, 0, width, heigh);
+        // 获取drawable的颜色格式
+        Bitmap.Config config = drawable.getOpacity() != PixelFormat.OPAQUE ? Bitmap.Config.ARGB_8888
+                : Bitmap.Config.RGB_565;
+        // 创建bitmap
+        Bitmap bitmap = Bitmap.createBitmap(width, heigh, config);
+        // 创建bitmap画布
+        Canvas canvas = new Canvas(bitmap);
+        // 将drawable 内容画到画布中
+        drawable.draw(canvas);
+        return bitmap;
     }
 }

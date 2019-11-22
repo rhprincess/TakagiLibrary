@@ -20,6 +20,7 @@ public class TakagiBean {
     private TextView summary;
     private View contentView;
     private int height;
+    private int id;
 
     public TakagiBean(final LinearLayout container) {
         this.container = container;
@@ -34,6 +35,14 @@ public class TakagiBean {
                 getIndicator().setLayoutParams(new LinearLayout.LayoutParams(dp(25), height));
             }
         });
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public TextView getTitle() {

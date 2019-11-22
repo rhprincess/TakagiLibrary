@@ -2,6 +2,10 @@ package com.github.coxylicacid.takagi;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +15,8 @@ import android.widget.TextView;
 import androidx.annotation.StringRes;
 
 import com.github.coxylicacid.takagi.bean.TakagiBean;
+
+import org.xmlpull.v1.XmlPullParser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +35,9 @@ public class Takagi {
     private int takagiActiveColor;
     private int takagiNormalColor;
     private int summaryColor;
+    private float indicatorRadius;
+    private float indicatorThickness;
+    private Bitmap indicatorIcon;
 
     public Takagi(Activity activity) {
         this.activity = activity;
@@ -43,6 +52,8 @@ public class Takagi {
         takagiActiveColor = 0xFF1871EF;
         takagiNormalColor = 0xFF959595;
         summaryColor = 0xFF959595;
+        indicatorRadius = dp(8);
+        indicatorThickness = dp(2);
     }
 
     public void setTitle(String title) {
@@ -70,6 +81,9 @@ public class Takagi {
         bean.setSummary(summary);
         bean.setShow(false);
         bean.getIndicator().setIndicatorColor(takagiActiveColor, takagiNormalColor);
+        bean.getIndicator().setCircleRadius(indicatorRadius);
+        if (indicatorIcon != null) bean.getIndicator().setIndicatorIcon(indicatorIcon);
+        bean.getIndicator().setIndicatorThickness(indicatorThickness);
         bean.getTitle().setTextColor(titleUnFinishedColor);
         bean.getSummary().setTextColor(summaryColor);
         takagiLists.add(bean);
@@ -87,11 +101,53 @@ public class Takagi {
         bean.setShow(false);
         bean.setContentView(contentView);
         bean.getIndicator().setIndicatorColor(takagiActiveColor, takagiNormalColor);
+        bean.getIndicator().setCircleRadius(indicatorRadius);
+        if (indicatorIcon != null) bean.getIndicator().setIndicatorIcon(indicatorIcon);
+        bean.getIndicator().setIndicatorThickness(indicatorThickness);
         bean.getTitle().setTextColor(titleUnFinishedColor);
         bean.getSummary().setTextColor(summaryColor);
         takagiLists.add(bean);
         takagiContainer.addView(v);
         return bean;
+    }
+
+    public TakagiBean insert(int pos, String title, String summary) {
+        LinearLayout v = (LinearLayout) LayoutInflater.from(activity).inflate(R.layout.takagi_view_container, null);
+        ((TextView) v.findViewById(android.R.id.title)).setText(title);
+        ((TextView) v.findViewById(android.R.id.summary)).setText(summary);
+        TakagiBean bean = new TakagiBean(v);
+        bean.setTitle(title);
+        bean.setSummary(summary);
+        bean.setShow(false);
+        bean.getIndicator().setIndicatorColor(takagiActiveColor, takagiNormalColor);
+        bean.getIndicator().setCircleRadius(indicatorRadius);
+        if (indicatorIcon != null) bean.getIndicator().setIndicatorIcon(indicatorIcon);
+        bean.getIndicator().setIndicatorThickness(indicatorThickness);
+        bean.getTitle().setTextColor(titleUnFinishedColor);
+        bean.getSummary().setTextColor(summaryColor);
+        takagiLists.add(pos, bean);
+        takagiContainer.addView(v, pos);
+        return null;
+    }
+
+    public TakagiBean insert(int pos, String title, String summary, View contentView) {
+        LinearLayout v = (LinearLayout) LayoutInflater.from(activity).inflate(R.layout.takagi_view_container, null);
+        ((TextView) v.findViewById(android.R.id.title)).setText(title);
+        ((TextView) v.findViewById(android.R.id.summary)).setText(summary);
+        TakagiBean bean = new TakagiBean(v);
+        bean.setTitle(title);
+        bean.setSummary(summary);
+        bean.setShow(false);
+        bean.setContentView(contentView);
+        bean.getIndicator().setIndicatorColor(takagiActiveColor, takagiNormalColor);
+        bean.getIndicator().setCircleRadius(indicatorRadius);
+        if (indicatorIcon != null) bean.getIndicator().setIndicatorIcon(indicatorIcon);
+        bean.getIndicator().setIndicatorThickness(indicatorThickness);
+        bean.getTitle().setTextColor(titleUnFinishedColor);
+        bean.getSummary().setTextColor(summaryColor);
+        takagiLists.add(pos, bean);
+        takagiContainer.addView(v, pos);
+        return null;
     }
 
     public void next() {
@@ -111,6 +167,13 @@ public class Takagi {
 
     public void previous() {
         TakagiBean bean = takagiLists.get(selectedTakagi);
+
+        if (selectedTakagi == 0) {
+            bean.getIndicator().redo();
+            bean.getTitle().setTextColor(titleUnFinishedColor);
+            takagiLists.get(selectedTakagi).getIndicator().focus(true);
+        }
+
         if (selectedTakagi - 1 >= 0) {
             bean.getIndicator().redo();
             bean.close();
@@ -135,6 +198,22 @@ public class Takagi {
 
     public void setTakagiSummaryColor(int summaryColor) {
         this.summaryColor = summaryColor;
+    }
+
+    public void setIndicatorRadius(float radius) {
+        this.indicatorRadius = radius;
+    }
+
+    public void setIndicatorThickness(float thickness) {
+        this.indicatorThickness = thickness;
+    }
+
+    public void setIndicatorIcon(Drawable drawable) {
+        this.indicatorIcon = ((BitmapDrawable) drawable).getBitmap();
+    }
+
+    public void setIndicatorIcon(Bitmap bitmap) {
+
     }
 
     public void applyForThisActivity() {
@@ -177,6 +256,69 @@ public class Takagi {
                 takagiLists.remove(pos);
             }
         }
+    }
+
+    public TakagiBean get(int pos) {
+        return takagiLists.get(pos);
+    }
+
+    public LinearLayout getRootView() {
+        return rootView;
+    }
+
+    public void parse(int takagiRes) {
+        try {
+            XmlPullParser parser = activity.getResources().getXml(takagiRes);
+            int eventType = parser.getEventType();
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                switch (eventType) {
+                    case XmlPullParser.START_DOCUMENT:
+                        // TODO: Parser start.
+                        break;
+                    case XmlPullParser.START_TAG:
+                        if ("takagi".equals(parser.getName())) {
+                            View v;
+                            String title = parser.getAttributeValue(null, "title");
+                            String summary = parser.getAttributeValue(null, "summary");
+                            String layout = parser.getAttributeValue(null, "layout");
+                            int layoutRes = 0;
+
+                            if (title != null && title.startsWith("@")) {
+                                title = activity.getString(Integer.valueOf(title.substring(1)));
+                            }
+
+                            if (summary != null && summary.startsWith("@")) {
+                                summary = activity.getString(Integer.valueOf(summary.substring(1)));
+                            }
+
+                            if (layout != null && layout.startsWith("@")) {
+                                layoutRes = Integer.valueOf(layout.substring(1));
+                            }
+
+                            Log.e("TAKAGI", "title: " + title + ", summary: " + summary + ", layout: " + layoutRes);
+
+                            if (layoutRes != 0) {
+                                v = LayoutInflater.from(activity).inflate(layoutRes, null);
+                                add(title == null ? "TITLE" : title, summary == null ? "SUMMARY" : summary, v);
+                            } else {
+                                add(title == null ? "TITLE" : title, summary == null ? "SUMMARY" : summary);
+                            }
+                        }
+                        break;
+                    case XmlPullParser.END_TAG:
+                        // TODO: Parser done.
+                        break;
+                }
+                eventType = parser.next();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private int dp(float value) {
+        float density = activity.getResources().getDisplayMetrics().density;
+        return value == 0 ? 0 : (int) Math.ceil(density * value);
     }
 
 }
